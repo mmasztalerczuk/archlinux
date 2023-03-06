@@ -1,0 +1,5 @@
+root_disk: nvme0n1
+root_disk_part: nvme0n1p
+
+home_disk: sda
+home_disk_part: sda

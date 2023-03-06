@@ -1,0 +1,102 @@
+---
+- name: Set keyboard layout
+  ansible.builtin.shell: |
+    loadkeys pl
+
+- name: Update date
+  ansible.builtin.shell: |
+    timedatectl status
+
+- name: Prepare root partition
+  ansible.builtin.shell: |
+    sfdisk --delete /dev/{{ root_disk }}
+    sgdisk -n 0:0MiB:3GiB -t 0:8200 /dev/{{ root_disk }}
+    sgdisk -n 0:0MiB:0GiB /dev/{{ root_disk }}
+    mkfs.btrfs -L arch_os /dev/{{ root_disk_part }}2
+    mkswap /dev/{{ root_disk_part }}1
+
+- name: Prepare home partition
+  ansible.builtin.shell: |
+    sfdisk --delete /dev/{{ home_disk }}
+    sgdisk -n 0:0MiB:1025MiB -t 1:ef00 /dev/{{ home_disk }}    
+    sgdisk -n 0:0MiB:0GiB /dev/{{ home_disk }}
+    mkfs.fat -F 32 /dev/{{ home_disk_part }}1    
+    mkfs.ext4 /dev/{{ home_disk_part }}2
+   
+- name: Mount partitions
+  ansible.builtin.shell: |
+    mount /dev/{{ root_disk_part }}2 /mnt
+    mount --mkdir /dev/{{ home_disk_part }}1 /mnt/boot
+    swapon /dev/{{ root_disk_part }}1
+    mount --mkdir /dev/sda1 /mnt/home
+
+- name: Copy file with owner and permission, using symbolic representation
+  ansible.builtin.copy:
+    src: archmirror
+    dest: /etc/pacman.d/archmirror
+
+- name: Copy file with owner and permission, using symbolic representation
+  ansible.builtin.copy:
+    src: mirrorlist
+    dest: /etc/pacman.d/mirrorlist
+
+- name: Update mirror
+  ansible.builtin.shell: |
+    awk '/^Include = \/etc\/pacman.d\/mirrorlist/{print "Include = \/etc\/pacman.d\/archmirror"}1' /etc/pacman.conf > /tmp/pacman.conf
+
+- name: Update mirror
+  ansible.builtin.shell: |
+    cat /tmp/pacman.conf > /etc/pacman.conf
+
+- name: Update mirror
+  ansible.builtin.shell: |
+    echo "192.168.1.130 archmirror" > /etc/hosts
+
+- name: Install essential packages
+  ansible.builtin.shell: |
+    pacstrap -K /mnt base linux linux-firmware
+
+- name: Configure the system
+  ansible.builtin.shell: |
+    genfstab -U /mnt > /mnt/etc/fstab
+
+- name: Time zone
+  ansible.builtin.shell: |
+    arch-chroot /mnt ln -sf /usr/share/zoneinfo/Europe/Warsaw /etc/localtime
+    arch-chroot /mnt hwclock --systohc
+ 
+- name: Localization
+  ansible.builtin.shell: |
+    arch-chroot /mnt locale-gen
+
+- name: Set password for root
+  ansible.builtin.shell: |
+    set -o pipefail
+    echo root:'mariusz' | chpasswd -e -R /mnt
+
+- name: Install boot loader
+  ansible.builtin.shell: |
+    arch-chroot /mnt bootctl install
+
+- name: Copy loader config
+  ansible.builtin.copy:
+    src: loader.conf
+    dest: /mnt/boot/loader/loader.conf
+
+- name: Copy loader config part 2
+  ansible.builtin.template:
+    src: arch.conf.j2
+    dest: /mnt/boot/loader/entries/arch.conf
+
+- name: Copy loader config part 3
+  ansible.builtin.copy:
+    src: arch-fallback.conf
+    dest: /mnt/boot/loader/entries/arch-fallback.conf  
+
+- name: Generate intel-ucode
+  ansible.builtin.shell: |
+    arch-chroot /mnt pacman -S intel-ucode --noconfirm
+
+# - name: Reboot
+#   ansible.builtin.shell: |
+#     reboot   

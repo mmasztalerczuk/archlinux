@@ -1,0 +1,4 @@
+root=UUID={{ root_uuid }}
+resume=UUID={{ resume_uuid }}
+"Arch Linux"       "root=UUID={{ root_uuid }} resume=UUID={{ resume_uuid }} rw initrd=/boot/intel-ucode.img initrd=/boot/initramfs-%v.img"
+"Arch Linux (CLI)" "root=UUID={{ root_uuid }} resume=UUID={{ resume_uuid }} rw initrd=/boot/intel-ucode.img initrd=/boot/initramfs-%v.img systemd.unit=multi-user.target"
