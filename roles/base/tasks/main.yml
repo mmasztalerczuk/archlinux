@@ -28,7 +28,7 @@
     mount /dev/{{ root_disk_part }}2 /mnt
     mount --mkdir /dev/{{ home_disk_part }}1 /mnt/boot
     swapon /dev/{{ root_disk_part }}1
-    mount --mkdir /dev/sda1 /mnt/home
+    mount --mkdir /dev/{{ home_disk_part }}2 /mnt/home
 
 - name: Copy file with owner and permission, using symbolic representation
   ansible.builtin.copy:
@@ -69,10 +69,12 @@
   ansible.builtin.shell: |
     arch-chroot /mnt locale-gen
 
-- name: Set password for root
-  ansible.builtin.shell: |
-    set -o pipefail
-    echo root:'mariusz' | chpasswd -e -R /mnt
+- name: Set authorized keys taken from url using lookup
+  ansible.posix.authorized_key:
+    user: root
+    state: present
+    path: /mnt/root/.ssh/authorized_keys
+    key: "{{ lookup('url', 'https://raw.githubusercontent.com/mmasztalerczuk/public-ssh-keys/main/sarah/sarah_root.pub', split_lines=False) }}"
 
 - name: Install boot loader
   ansible.builtin.shell: |
@@ -97,6 +99,24 @@
   ansible.builtin.shell: |
     arch-chroot /mnt pacman -S intel-ucode --noconfirm
 
+- name: Install dhcp
+  ansible.builtin.shell: |
+    arch-chroot /mnt pacman -S dhcpcd --noconfirm
+
+- name: Enable dhcp
+  ansible.builtin.shell: |
+    arch-chroot /mnt systemctl enable dhcpcd
+
+- name: Enable dhcp
+  ansible.builtin.shell: |
+    arch-chroot /mnt pacman -S openssh --noconfirm
+
+- name: Enable sshd
+  ansible.builtin.shell: |
+    arch-chroot /mnt systemctl enable sshd.service
+
+    
+
 # - name: Reboot
 #   ansible.builtin.shell: |
-#     reboot   
+#     reboot
