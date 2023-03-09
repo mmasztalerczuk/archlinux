@@ -1,0 +1,7 @@
+---
+- name: Copy new mirrorlist
+  lineinfile:
+    dest: /etc/pacman.d/mirrorlist
+    insertbefore: BOF
+    line: "Server = http://{{ mirror_ip }}/arch/$repo/os/$arch"
+
