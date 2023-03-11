@@ -1,4 +1,19 @@
-- name: Time zone
+---
+- name: Create user mariusz
   ansible.builtin.shell: |
-    arch-chroot /mnt ln -sf /usr/share/zoneinfo/Europe/Warsaw /etc/localtime
-    arch-chroot /mnt hwclock --systohc
+    useradd -m mariusz
+
+- name: Set authorized keys taken from url using lookup
+  ansible.posix.authorized_key:
+    user: mariusz
+    state: present
+    path: /home/mariusz/.ssh/authorized_keys
+    key: "{{ lookup('url', 'https://raw.githubusercontent.com/mmasztalerczuk/public-ssh-keys/main/sarah/sarah_mariusz.pub', split_lines=False) }}"
+
+- name: chown to username you login and chmod as required
+  file:
+    path: /home/mariusz/.ssh/authorized_keys
+    owner: mariusz
+    group: mariusz
+    mode: 0644
+

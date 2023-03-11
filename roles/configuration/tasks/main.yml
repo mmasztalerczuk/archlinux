@@ -1,0 +1,14 @@
+---
+- name: Install packages
+  community.general.pacman:
+    name: 
+      - gnome
+      - sudo
+      - vi
+      - nano
+      - vim
+    state: present
+
+- name: Create user mariusz
+  ansible.builtin.shell: |
+    systemctl enable gdm.service

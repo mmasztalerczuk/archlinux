@@ -9,7 +9,6 @@
 
 - name: Prepare root partition
   ansible.builtin.shell: |
-    dd if=/dev/zero of=/dev/{{ root_disk }} bs=1M
     sfdisk --delete /dev/{{ root_disk }}
     sgdisk -n 0:0MiB:3GiB -t 0:8200 /dev/{{ root_disk }}
     sgdisk -n 0:0MiB:0GiB /dev/{{ root_disk }}
@@ -18,7 +17,6 @@
 
 - name: Prepare home partition
   ansible.builtin.shell: |
-    dd if=/dev/zero of=/dev/{{ home_disk }} bs=1M
     sfdisk --delete /dev/{{ home_disk }}
     sgdisk -n 0:0MiB:1025MiB -t 1:ef00 /dev/{{ home_disk }}    
     sgdisk -n 0:0MiB:0GiB /dev/{{ home_disk }}
@@ -94,6 +92,10 @@
 - name: Enable dhcp
   ansible.builtin.shell: |
     arch-chroot /mnt pacman -S openssh --noconfirm
+
+- name: Enable dhcp
+  ansible.builtin.shell: |
+    arch-chroot /mnt pacman -S python --noconfirm
 
 - name: Enable sshd
   ansible.builtin.shell: |
