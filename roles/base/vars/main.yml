@@ -1,5 +1,13 @@
-root_disk: nvme0n1
-root_disk_part: nvme0n1p
+# Prod:
+# root_disk: nvme0n1
+# root_disk_part: nvme0n1p
 
-home_disk: sda
-home_disk_part: sda
+# home_disk: sda
+# home_disk_part: sda
+
+# Dev
+root_disk: vda
+root_disk_part: vda
+
+home_disk: vdb
+home_disk_part: vdb

@@ -7,8 +7,18 @@
       - vi
       - nano
       - vim
+      - git 
+      - base-devel
+      - go
+      - firefox
+      - networkmanager
     state: present
 
-- name: Create user mariusz
+- name: Enable GDM
   ansible.builtin.shell: |
     systemctl enable gdm.service
+
+- name: Enabe NetworkManager
+  ansible.builtin.shell: |
+    systemctl enable NetworkManager.service
+   
